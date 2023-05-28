@@ -1,11 +1,11 @@
 
 {
-    "max_open_trades": 7,
+    "max_open_trades": 6,
     "stake_currency": "USDT",
     "stake_amount": 75,
     "tradable_balance_ratio": 0.99,
     "fiat_display_currency": "USD",
-    "timeframe": "5m",
+    "timeframe": "15m",
     "dry_run": true,
     "dry_run_wallet": 500,
     "cancel_open_orders_on_exit": false,
@@ -15,7 +15,7 @@
         "unit": "minutes"
     },
     "bid_strategy": {
-        "price_side": "ask",
+        "price_side": "bid",
         "ask_last_balance": 0.0,
         "use_order_book": true,
         "order_book_top": 1,
@@ -41,11 +41,21 @@
 	    "MATIC/USDT",
 	    "APT/USDT",
 	    "SHIB/USDT",
-	    "FIL/USDT",
-	    "LINK/USDT",
-	    "DOT/USDT",
+	    "FTM/USDT",
+	    "SOL/USDT",
+	    "XRP/USDT",
+	    "DOGE/USDT",
+	    "OP/USDT",
 	    "HFT/USDT",
-	    "LDO/USDT"
+	    "LDO/USDT",
+	    "FET/USDT",
+	    "GRT/USDT",
+	    "SHIB/USDT",
+	    "ADA/USDT",
+	    "LTC/USDT",
+	    "DYDX/USDT",
+	    "HOOK/USDT",
+	    "MAGIC/USDT"
         ],
         "pair_blacklist": [
             "BNB/.*",
@@ -53,10 +63,14 @@
         ]
     },
     "pairlists": [
-        {
-            "method": "StaticPairList"
-        }
-    ],
+       {
+        "method": "VolumePairList",
+        "number_assets": 20,
+        "sort_key": "quoteVolume",
+        "min_value": 0,
+        "refresh_period": 1800
+      }
+ ],
     "edge": {
         "enabled": false,
         "process_throttle_secs": 3600,

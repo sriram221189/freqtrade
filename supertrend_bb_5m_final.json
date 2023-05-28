@@ -1,0 +1,33 @@
+{
+  "strategy_name": "SupertrendBB",
+  "params": {
+    "buy": {
+      "buy_bb_std": 3,
+      "buy_bb_window": 14,
+      "buy_m1": 4,
+      "buy_p1": 9
+    },
+    "sell": {},
+    "protection": {},
+    "roi": {
+      "0": 0.058,
+      "25": 0.041,
+      "68": 0.012,
+      "179": 0
+    },
+    "stoploss": {
+      "stoploss": -0.261
+    },
+    "trailing": {
+      "trailing_stop": true,
+      "trailing_stop_positive": 0.014,
+      "trailing_stop_positive_offset": 0.023,
+      "trailing_only_offset_is_reached": false
+    },
+    "max_open_trades": {
+      "max_open_trades": 7
+    }
+  },
+  "ft_stratparam_v": 1,
+  "export_time": "2023-03-20 18:46:45.388065+00:00"
+}

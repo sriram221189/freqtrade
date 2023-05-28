@@ -1,0 +1,45 @@
+{
+  "strategy_name": "ReinforcedSmoothScalp",
+  "params": {
+    "buy": {
+      "buy_adx": 41,
+      "buy_adx_enabled": true,
+      "buy_fastd": 43,
+      "buy_fastd_enabled": true,
+      "buy_fastk": 45,
+      "buy_fastk_enabled": false,
+      "buy_mfi": 18,
+      "buy_mfi_enabled": true
+    },
+    "sell": {
+      "sell_adx": 72,
+      "sell_adx_enabled": false,
+      "sell_cci": 194,
+      "sell_cci_enabled": false,
+      "sell_fastd": 63,
+      "sell_fastd_enabled": true,
+      "sell_fastk": 80,
+      "sell_fastk_enabled": false,
+      "sell_mfi": 78,
+      "sell_mfi_enabled": false
+    },
+    "protection": {},
+    "roi": {
+      "0": 0.22499999999999998,
+      "14": 0.077,
+      "34": 0.017,
+      "64": 0
+    },
+    "stoploss": {
+      "stoploss": -0.037
+    },
+    "trailing": {
+      "trailing_stop": true,
+      "trailing_stop_positive": 0.02,
+      "trailing_stop_positive_offset": 0.039,
+      "trailing_only_offset_is_reached": true
+    }
+  },
+  "ft_stratparam_v": 1,
+  "export_time": "2023-04-03 05:55:39.486838+00:00"
+}

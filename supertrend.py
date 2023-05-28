@@ -18,6 +18,7 @@ from freqtrade.strategy import IntParameter, BooleanParameter
 from pandas import DataFrame, concat
 import talib.abstract as ta
 import numpy as np
+from functools import reduce
 
 
 class Supertrend(IStrategy):
@@ -32,6 +33,9 @@ class Supertrend(IStrategy):
         "buy_p1": 8,
         "buy_p2": 9,
         "buy_p3": 8,
+        "buy_s1": True,
+        "buy_s2": True,
+        "buy_s3": True
     }
 
     # Sell hyperspace params:
@@ -42,6 +46,9 @@ class Supertrend(IStrategy):
         "sell_p1": 16,
         "sell_p2": 18,
         "sell_p3": 18,
+        "sell_s1": True,
+        "sell_s2": True,
+        "sell_s3": True
     }
 
     # ROI table:
@@ -71,13 +78,18 @@ class Supertrend(IStrategy):
     buy_p1 = IntParameter(7, 21, default=14)
     buy_p2 = IntParameter(7, 21, default=14)
     buy_p3 = IntParameter(7, 21, default=14)
-
+    buy_s1 = BooleanParameter(default=True)
+    buy_s2 = BooleanParameter(default=True)
+    buy_s3 = BooleanParameter(default=True)
     sell_m1 = IntParameter(1, 7, default=1)
     sell_m2 = IntParameter(1, 7, default=4)
     sell_m3 = IntParameter(1, 7, default=4)
     sell_p1 = IntParameter(7, 21, default=14)
     sell_p2 = IntParameter(7, 21, default=14)
     sell_p3 = IntParameter(7, 21, default=14)
+    sell_s1 = BooleanParameter(default=True)
+    sell_s2 = BooleanParameter(default=True)
+    sell_s3 = BooleanParameter(default=True)
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         calc_dict = {}
@@ -124,26 +136,48 @@ class Supertrend(IStrategy):
         return dataframe
 
     def populate_buy_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        dataframe.loc[
-            (
-                    (dataframe[f'supertrend_1_buy_{self.buy_m1.value}_{self.buy_p1.value}'] == 'up') &
-                    (dataframe[f'supertrend_2_buy_{self.buy_m2.value}_{self.buy_p2.value}'] == 'up') &
-                    (dataframe[f'supertrend_3_buy_{self.buy_m3.value}_{self.buy_p3.value}'] == 'up') &  # The three indicators are 'up' for the current candle
-                    (dataframe['volume'] > 0)  # There is at least some trading volume
-            ),
-            'buy'] = 1
+        conditions = []
+        if self.buy_s1.value:
+            conditions.append(
+                dataframe[f'supertrend_1_buy_{self.buy_m1.value}_{self.buy_p1.value}'] == 'up'
+            )
+        if self.buy_s2.value:
+            conditions.append(
+                dataframe[f'supertrend_2_buy_{self.buy_m2.value}_{self.buy_p2.value}'] == 'up'
+            )
+        if self.buy_s3.value:
+            conditions.append(
+                dataframe[f'supertrend_3_buy_{self.buy_m3.value}_{self.buy_p3.value}'] == 'up'
+            )
+        conditions.append(dataframe['volume'] > 0)
+
+        if conditions:
+            dataframe.loc[
+                reduce(lambda x, y: x & y, conditions),
+                'enter_long'] = 1
 
         return dataframe
 
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        dataframe.loc[
-            (
-                    (dataframe[f'supertrend_1_sell_{self.sell_m1.value}_{self.sell_p1.value}'] == 'down') &
-                    (dataframe[f'supertrend_2_sell_{self.sell_m2.value}_{self.sell_p2.value}'] == 'down') &
-                    (dataframe[f'supertrend_3_sell_{self.sell_m3.value}_{self.sell_p3.value}'] == 'down') &  # The three indicators are 'down' for the current candle
-                    (dataframe['volume'] > 0)  # There is at least some trading volume
-            ),
-            'sell'] = 1
+        conditions = []
+        if self.sell_s1.value:
+            conditions.append(
+                dataframe[f'supertrend_1_sell_{self.sell_m1.value}_{self.sell_p1.value}'] == 'down'
+            )
+        if self.sell_s2.value:
+            conditions.append(
+                dataframe[f'supertrend_2_sell_{self.sell_m2.value}_{self.sell_p2.value}'] == 'down'
+            )
+        if self.sell_s3.value:
+            conditions.append(
+                dataframe[f'supertrend_3_sell_{self.sell_m3.value}_{self.sell_p3.value}'] == 'down'
+            )
+        conditions.append(dataframe['volume'] > 0)
+
+        if conditions:
+            dataframe.loc[
+                reduce(lambda x, y: x & y, conditions),
+                'exit_long'] = 1
         return dataframe
 
     """

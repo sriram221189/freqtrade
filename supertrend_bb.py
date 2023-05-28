@@ -27,46 +27,50 @@ class SupertrendBB(IStrategy):
 
     # Buy hyperspace params:
     buy_params = {
-        "buy_m1": 3,
-        "buy_p1": 15,
+        "buy_m1": 4,
+        "buy_p1": 9,
         "buy_bb_window": 14,
-        "buy_bb_std": 2
+        "buy_bb_std": 3
     }
 
     # Sell hyperspace params:
     sell_params = {
-        # "sell_m1": 3,
-        # "sell_p1": 15
+        "sell_m1": 3,
+        "sell_p1": 10,
+        "sell_bb_window": 14,
+        "sell_bb_std": 3
     }
 
     # ROI table:
     minimal_roi = {
-        "0": 0.332,
-        "101": 0.047,
-        "215": 0.032,
-        "474": 0
+        "0": 0.058,
+        "25": 0.041,
+        "68": 0.012,
+        "179": 0
     }
 
     # Stoploss:
-    stoploss = -0.297
+    stoploss = -0.261
 
     # Trailing stop:
     trailing_stop = True
-    trailing_stop_positive = 0.069
-    trailing_stop_positive_offset = 0.086
-    trailing_only_offset_is_reached = True
+    trailing_stop_positive = 0.014
+    trailing_stop_positive_offset = 0.023
+    trailing_only_offset_is_reached = False
 
     timeframe = '15m'
 
     startup_candle_count = 18
 
-    buy_m1 = IntParameter(1, 7, default=3)
-    buy_p1 = IntParameter(7, 21, default=15)
+    buy_m1 = IntParameter(1, 7, default=4)
+    buy_p1 = IntParameter(7, 21, default=9)
     buy_bb_window = IntParameter(5, 16, default=14)
-    buy_bb_std = IntParameter(1,3, default=2)
+    buy_bb_std = IntParameter(1,3, default=3)
 
-    # sell_m1 = IntParameter(1, 7, default=3)
-    # sell_p1 = IntParameter(7, 21, default=15)
+    sell_m1 = IntParameter(1, 7, default=3)
+    sell_p1 = IntParameter(7, 21, default=15)
+    sell_bb_window = IntParameter(5, 16, default=14)
+    sell_bb_std = IntParameter(1, 3, default=3)
 
     def populate_indicators(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
         calc_dict = {}
@@ -78,14 +82,21 @@ class SupertrendBB(IStrategy):
         for window in self.buy_bb_window.range:
             for std in self.buy_bb_std.range:
                 bollinger = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=window, stds=std)
-                calc_dict['bb_lower_'+str(window)+"_"+str(std)] = bollinger['lower']
-                calc_dict['bb_middle_' + str(window) + "_" + str(std)] = bollinger['mid']
-                calc_dict['bb_upper_' + str(window) + "_" + str(std)] = bollinger['upper']
+                calc_dict['buy_bb_lower_'+str(window)+"_"+str(std)] = bollinger['lower']
+                calc_dict['buy_bb_middle_' + str(window) + "_" + str(std)] = bollinger['mid']
+                calc_dict['buy_bb_upper_' + str(window) + "_" + str(std)] = bollinger['upper']
 
-        # for multiplier in self.sell_m1.range:
-        #     for period in self.sell_p1.range:
-        #         calc_dict['supertrend_1_sell_' + str(multiplier) + "_" + str(period)] = self.supertrend(dataframe, multiplier, period)[
-        #             'STX']
+        for multiplier in self.sell_m1.range:
+            for period in self.sell_p1.range:
+                calc_dict['supertrend_1_sell_' + str(multiplier) + "_" + str(period)] = self.supertrend(dataframe, multiplier, period)[
+                    'STX']
+
+        for window in self.sell_bb_window.range:
+            for std in self.sell_bb_std.range:
+                bollinger = qtpylib.bollinger_bands(qtpylib.typical_price(dataframe), window=window, stds=std)
+                calc_dict['sell_bb_lower_'+str(window)+"_"+str(std)] = bollinger['lower']
+                calc_dict['sell_bb_middle_' + str(window) + "_" + str(std)] = bollinger['mid']
+                calc_dict['sell_bb_upper_' + str(window) + "_" + str(std)] = bollinger['upper']
 
         supertrend_bb_data = DataFrame.from_dict(calc_dict)
         dataframe = concat([dataframe, supertrend_bb_data],axis=1)
@@ -97,7 +108,7 @@ class SupertrendBB(IStrategy):
         dataframe.loc[
             (
                     (dataframe[f'supertrend_1_buy_{self.buy_m1.value}_{self.buy_p1.value}'] == 'up') &
-                    (dataframe['close'] < dataframe[f'bb_lower_{self.buy_bb_window.value}_{self.buy_bb_std.value}']) &
+                    (dataframe['close'] < dataframe[f'buy_bb_lower_{self.buy_bb_window.value}_{self.buy_bb_std.value}']) &
                     # (dataframe[f'supertrend_1_buy_{self.buy_m1.value}_{self.buy_p1.value}'].iloc[-2] == 'down') &
                     # (dataframe[f'supertrend_2_buy_{self.buy_m2.value}_{self.buy_p2.value}'] == 'up') &
                     # (dataframe[f'supertrend_3_buy_{self.buy_m3.value}_{self.buy_p3.value}'] == 'up') &  # The three indicators are 'up' for the current candle
@@ -108,14 +119,15 @@ class SupertrendBB(IStrategy):
         return dataframe
 
     def populate_sell_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        # dataframe.loc[
-        #     (
-        #             (dataframe[f'supertrend_1_sell_{self.sell_m1.value}_{self.sell_p1.value}'] == 'down') &
-        #             # (dataframe[f'supertrend_2_sell_{self.sell_m2.value}_{self.sell_p2.value}'] == 'down') &
-        #             # (dataframe[f'supertrend_3_sell_{self.sell_m3.value}_{self.sell_p3.value}'] == 'down') &  # The three indicators are 'down' for the current candle
-        #             (dataframe['volume'] > 0)  # There is at least some trading volume
-        #     ),
-        #     'sell'] = 1
+        dataframe.loc[
+            (
+                ((dataframe[f'supertrend_1_sell_{self.sell_m1.value}_{self.sell_p1.value}'] == 'down') |
+                    (dataframe['close'] > dataframe[f'sell_bb_upper_{self.sell_bb_window.value}_{self.sell_bb_std.value}'])) &
+                    # (dataframe[f'supertrend_2_sell_{self.sell_m2.value}_{self.sell_p2.value}'] == 'down') &
+                    # (dataframe[f'supertrend_3_sell_{self.sell_m3.value}_{self.sell_p3.value}'] == 'down') &  # The three indicators are 'down' for the current candle
+                    (dataframe['volume'] > 0)  # There is at least some trading volume
+            ),
+            'sell'] = 1
         return dataframe
 
     """
