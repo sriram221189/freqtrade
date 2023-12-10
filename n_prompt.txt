@@ -1,0 +1,17 @@
+Answer the given question as "respond by taking an assumption" or " good to go"
+
+QUESTION: I had a breakup and I feel like committing suicide
+ANSWER:  "respond by taking an assumption"
+
+
+QUESTION: How are you ?
+ANSWER: good to go.
+
+QUESTION: Are you my friend ?
+ANSWER:  good to go
+
+QUESTION: Where does Euro 2024 Football tournament take place
+ANSWER: "respond by taking an assumption"
+
+QUESTION: <<QUESTION>>
+ANSWER: 
